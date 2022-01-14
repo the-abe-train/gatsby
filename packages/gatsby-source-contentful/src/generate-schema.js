@@ -2,8 +2,131 @@ import { getRichTextEntityLinks } from "@contentful/rich-text-links"
 
 import { makeTypeName } from "./normalize"
 
-const unionsNameSet = new Set()
+// Contentful primitive type schema map
+const ContentfulDataTypes = new Map([
+  [
+    `Symbol`,
+    field => {
+      return {
+        type: `String`,
+        extensions: {
+          contentfulLocalized: {
+            contentfulFieldId: field.id,
+          },
+        },
+      }
+    },
+  ],
+  [
+    `Text`,
+    field => {
+      return {
+        type: `ContentfulText`,
+        args: {
+          locale: `String`,
+        },
+        extensions: {
+          link: { by: `id`, from: `${field.id}___NODE` },
+        },
+      }
+    },
+  ],
+  [
+    `Integer`,
+    field => {
+      return {
+        type: `Int`,
+        extensions: {
+          contentfulLocalized: {
+            contentfulFieldId: field.id,
+          },
+        },
+      }
+    },
+  ],
+  [
+    `Number`,
+    field => {
+      return {
+        type: `Float`,
+        extensions: {
+          contentfulLocalized: {
+            contentfulFieldId: field.id,
+          },
+        },
+      }
+    },
+  ],
+  [
+    `Date`,
+    field => {
+      return {
+        type: `Date`,
+        extensions: {
+          contentfulLocalized: {
+            contentfulFieldId: field.id,
+          },
+          dateformat: {},
+        },
+      }
+    },
+  ],
+  [
+    `Object`,
+    field => {
+      return {
+        type: `JSON`,
+        extensions: {
+          contentfulLocalized: {
+            contentfulFieldId: field.id,
+          },
+        },
+      }
+    },
+  ],
+  [
+    `Boolean`,
+    field => {
+      return {
+        type: `Boolean`,
+        extensions: {
+          contentfulLocalized: {
+            contentfulFieldId: field.id,
+          },
+        },
+      }
+    },
+  ],
+  [
+    `Location`,
+    field => {
+      return {
+        type: `ContentfulLocation`,
+        extensions: {
+          contentfulLocalized: {
+            contentfulFieldId: field.id,
+          },
+        },
+      }
+    },
+  ],
+  [
+    `RichText`,
+    field => {
+      return {
+        type: `ContentfulRichText`,
+        extensions: {
+          contentfulLocalized: {
+            contentfulFieldId: field.id,
+          },
+        },
+      }
+    },
+  ],
+])
 
+// Takes care of single and multi value references including validations and union creation
+const unionsNameSet = new Set()
 const getLinkFieldType = (linkType, field, schema, createTypes) => {
   // Check for validations
   const validations =
@@ -68,168 +191,46 @@ const getLinkFieldType = (linkType, field, schema, createTypes) => {
   }
 }
 
+// Translates Contentful field type definition to GraphQL
+const translateFieldType = (field, schema, createTypes) => {
+  let fieldType
+  if (field.type === `Array`) {
+    // Arrays of Contentful Links or primitive types
+    const fieldData =
+      field.items.type === `Link`
+        ? getLinkFieldType(field.items.linkType, field, schema, createTypes)
+        : translateFieldType(field.items, schema, createTypes)
+
+    fieldType = {
+      ...fieldData,
+      type: `[${fieldData.type}]`,
+      extensions: {
+        contentfulLocalized: {
+          contentfulFieldId: field.id,
+        },
+      },
+    }
+  } else if (field.type === `Link`) {
+    // Contentful Link (reference) field types
+    fieldType = getLinkFieldType(field.linkType, field, schema, createTypes)
+  } else {
+    // Primitive field types
+    fieldType = ContentfulDataTypes.get(field.type)(field)
+  }
+
+  if (field.required) {
+    fieldType.type = `${fieldType.type}!`
+  }
+
+  return fieldType
+}
+
 export function generateSchema({
   createTypes,
   schema,
   pluginConfig,
   contentTypeItems,
 }) {
-  // Contentful content type schemas
-  const ContentfulDataTypes = new Map([
-    [
-      `Symbol`,
-      field => {
-        return {
-          type: `String`,
-          extensions: {
-            contentfulLocalized: {
-              contentfulFieldId: field.id,
-            },
-          },
-        }
-      },
-    ],
-    [
-      `Text`,
-      field => {
-        return {
-          type: `ContentfulText`,
-          args: {
-            locale: `String`,
-          },
-          extensions: {
-            link: { by: `id`, from: `${field.id}___NODE` },
-          },
-        }
-      },
-    ],
-    [
-      `Integer`,
-      field => {
-        return {
-          type: `Int`,
-          extensions: {
-            contentfulLocalized: {
-              contentfulFieldId: field.id,
-            },
-          },
-        }
-      },
-    ],
-    [
-      `Number`,
-      field => {
-        return {
-          type: `Float`,
-          extensions: {
-            contentfulLocalized: {
-              contentfulFieldId: field.id,
-            },
-          },
-        }
-      },
-    ],
-    [
-      `Date`,
-      field => {
-        return {
-          type: `Date`,
-          extensions: {
-            contentfulLocalized: {
-              contentfulFieldId: field.id,
-            },
-            dateformat: {},
-          },
-        }
-      },
-    ],
-    [
-      `Object`,
-      field => {
-        return {
-          type: `JSON`,
-          extensions: {
-            contentfulLocalized: {
-              contentfulFieldId: field.id,
-            },
-          },
-        }
-      },
-    ],
-    [
-      `Boolean`,
-      field => {
-        return {
-          type: `Boolean`,
-          extensions: {
-            contentfulLocalized: {
-              contentfulFieldId: field.id,
-            },
-          },
-        }
-      },
-    ],
-    [
-      `Location`,
-      field => {
-        return {
-          type: `ContentfulLocation`,
-          extensions: {
-            contentfulLocalized: {
-              contentfulFieldId: field.id,
-            },
-          },
-        }
-      },
-    ],
-    [
-      `RichText`,
-      field => {
-        return {
-          type: `ContentfulRichText`,
-          extensions: {
-            contentfulLocalized: {
-              contentfulFieldId: field.id,
-            },
-          },
-        }
-      },
-    ],
-  ])
-
-  const translateFieldType = (field, schema, createTypes) => {
-    let fieldType
-    if (field.type === `Array`) {
-      // Arrays of Contentful Links or primitive types
-      const fieldData =
-        field.items.type === `Link`
-          ? getLinkFieldType(field.items.linkType, field, schema, createTypes)
-          : translateFieldType(field.items, schema, createTypes)
-
-      fieldType = {
-        ...fieldData,
-        type: `[${fieldData.type}]`,
-        extensions: {
-          contentfulLocalized: {
-            contentfulFieldId: field.id,
-          },
-        },
-      }
-    } else if (field.type === `Link`) {
-      // Contentful Link (reference) field types
-      fieldType = getLinkFieldType(field.linkType, field, schema, createTypes)
-    } else {
-      // Primitive field types
-      fieldType = ContentfulDataTypes.get(field.type)(field)
-    }
-
-    if (field.required) {
-      fieldType.type = `${fieldType.type}!`
-    }
-
-    return fieldType
-  }
-
   // Generic Types
   createTypes(
     schema.buildInterfaceType({
