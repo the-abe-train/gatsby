@@ -127,17 +127,15 @@ export const pageQuery = graphql`
       }
     }
     assets: allContentfulAsset(
-      sort: { fields: contentful_id }
+      sort: { fields: sys___id }
       filter: {
         metadata: { tags: { elemMatch: { contentful_id: { eq: "animal" } } } }
-        node_locale: { eq: "en-US" }
+        sys: { locale: { eq: "en-US" } }
       }
     ) {
       nodes {
         title
-        file {
-          url
-        }
+        url
         metadata {
           tags {
             name

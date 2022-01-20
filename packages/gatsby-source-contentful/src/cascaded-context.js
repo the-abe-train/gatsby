@@ -37,10 +37,12 @@ export class CascadedContext {
     we can determine the current state of the variable for that part of the cascade
   */
   cascadeMap = new Map()
+  reporter = null
 
-  constructor() {}
+  constructor({ reporter }) {
+    this.reporter = reporter
+  }
   set(info, value) {
-    // console.log("set locale context", { info, value })
     const path = getPath(info.path)
     this.cascadeMap.set(path, value)
   }
@@ -52,18 +54,16 @@ export class CascadedContext {
     const cascadeKeys = [...this.cascadeMap.keys()]
     const lastCascade = findLongestPrefix(path, cascadeKeys)
 
-    console.log(`gät locale context`, { info, path, cascadeKeys, lastCascade })
-
     if (lastCascade) {
       // Since we pulled this out of the cascade keys,
       // there is always a T for this key
-      console.log(
+      this.reporter.verbose(
         `found this active locale from context:`,
         this.cascadeMap.get(lastCascade)
       )
       return this.cascadeMap.get(lastCascade)
     } else {
-      console.log(`fallback to default locale`)
+      this.reporter.verbose(`fallback to default locale`)
       return `en-US` // @todo make real this.defaultValue
     }
   }

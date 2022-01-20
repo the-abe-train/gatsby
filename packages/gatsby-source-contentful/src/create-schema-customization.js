@@ -23,8 +23,6 @@ async function getContentTypesFromContentFul({
   return contentTypeItems
 }
 
-const localeState = new CascadedContext()
-
 export async function createSchemaCustomization(
   { schema, actions, reporter, cache },
   pluginOptions
@@ -47,6 +45,8 @@ export async function createSchemaCustomization(
     })
   }
 
+  const localeState = new CascadedContext({ reporter })
+
   actions.createResolverContext({ localeState })
   actions.createFieldExtension({
     name: `contentfulLocalized`,
@@ -61,7 +61,7 @@ export async function createSchemaCustomization(
           locale: `String`,
         },
         resolve(source, args, context, info) {
-          console.log(
+          reporter.verbose(
             `contentfulLocalized field extension resolver`,
             JSON.stringify(
               {
@@ -75,23 +75,36 @@ export async function createSchemaCustomization(
           )
 
           let locale
-          // We have to do this because it works #bestCommentEver #markWhatsHacky
-          // if (source["__gatsby_resolved"]?.sys.locale) {
-          //   locale = source["__gatsby_resolved"].sys.locale
-          // }
-          // @todo we need to figure out the querys locale
-
+          // @todo we need to figure out the querys locale,
+          // the argument is not available for the whole query yet
           if (args.locale) {
             context.sourceContentful.localeState.set(info, args.locale)
             locale = args.locale
           } else {
             locale = context.sourceContentful.localeState.get(info) || `en-US` // @todo we need default locale
           }
+          console.log({
+            localeTest: source.localeTest,
+            locale,
+            localeState: context.sourceContentful.localeState,
+          })
+          // @todo rename localeTest || move it to root
           const fieldValue = source.localeTest[options.contentfulFieldId] || {}
 
-          console.log({ fieldValue, locale, options })
+          reporter.verbose(`Resolving field value`, {
+            fieldValue,
+            locale,
+            options,
+          })
 
-          return fieldValue[locale] || null
+          if (
+            typeof fieldValue[locale] !== `undefined` &&
+            fieldValue[locale] !== null
+          ) {
+            return fieldValue[locale]
+          }
+
+          return null
         },
       }
     },

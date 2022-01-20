@@ -131,5 +131,3 @@ List of locales and their codes can be found in Contentful app -> Settings -> Lo
       plugins: Joi.array(),
     })
     .external(validateContentfulAccess)
-
-exports.pluginOptionsSchema = pluginOptionsSchema
