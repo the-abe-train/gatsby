@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.6.0](https://github.com/gatsbyjs/gatsby/commits/gatsby-cli@4.6.0/packages/gatsby-cli) (2022-01-25)
+
+[🧾 Release notes](https://www.gatsbyjs.com/docs/reference/release-notes/v4.6)
+
+#### Bug Fixes
+
+- relax error location validation and ignore extra fields [#34559](https://github.com/gatsbyjs/gatsby/issues/34559) [#34588](https://github.com/gatsbyjs/gatsby/issues/34588) ([ed1a9b5](https://github.com/gatsbyjs/gatsby/commit/ed1a9b5a2d42c4bb87825b424a61fe973f52efa7))
+- Re-Add plugin-add functionality [#34482](https://github.com/gatsbyjs/gatsby/issues/34482) ([618b32b](https://github.com/gatsbyjs/gatsby/commit/618b32b17751c76ea1b1a6f4fbc91da928bd18c1))
+
+#### Other Changes
+
+- Upgrade to strip-ansi ^6.0.1 [#34383](https://github.com/gatsbyjs/gatsby/issues/34383) ([73b4625](https://github.com/gatsbyjs/gatsby/commit/73b462591f1e97a5d84803c792868a8058e895ff))
+
+### [4.5.2](https://github.com/gatsbyjs/gatsby/commits/gatsby-cli@4.5.2/packages/gatsby-cli) (2022-01-17)
+
+#### Bug Fixes
+
+- Re-Add plugin-add functionality [#34482](https://github.com/gatsbyjs/gatsby/issues/34482) [#34510](https://github.com/gatsbyjs/gatsby/issues/34510) ([0f5f7e4](https://github.com/gatsbyjs/gatsby/commit/0f5f7e46ca4e803a1f43059e5de984ce8cd150f3))
+
 ### [4.5.1](https://github.com/gatsbyjs/gatsby/commits/gatsby-cli@4.5.1/packages/gatsby-cli) (2022-01-12)
 
 **Note:** Version bump only for package gatsby-cli
