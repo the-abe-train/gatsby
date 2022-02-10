@@ -11,6 +11,7 @@ const handler = (req, res) => {
     if (req.method !== "POST") {
       res.json({ message: "Try a POST!" })
     }
+    console.log(req.body);
 
     if (req.body) {
       message.to = req.body.email
